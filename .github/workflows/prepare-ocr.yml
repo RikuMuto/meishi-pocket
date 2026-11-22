@@ -1,0 +1,42 @@
+
+name: Prepare offline OCR assets
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/prepare-ocr.yml'
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Fetch OCR engine and language models
+        run: |
+          set -euo pipefail
+          mkdir -p ocr/core ocr/lang
+          npm install --prefix /tmp/meishi-ocr --no-save tesseract.js@5.1.1 tesseract.js-core@5.1.0
+          cp /tmp/meishi-ocr/node_modules/tesseract.js/dist/tesseract.min.js ocr/tesseract.min.js
+          cp /tmp/meishi-ocr/node_modules/tesseract.js/dist/worker.min.js ocr/worker.min.js
+          cp /tmp/meishi-ocr/node_modules/tesseract.js-core/tesseract-core*.wasm.js ocr/core/
+          curl --fail --location --retry 3 --silent --show-error 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/jpn@1.0.0/4.0.0_best_int/jpn.traineddata.gz' -o ocr/lang/jpn.traineddata.gz
+          curl --fail --location --retry 3 --silent --show-error 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng@1.0.0/4.0.0_best_int/eng.traineddata.gz' -o ocr/lang/eng.traineddata.gz
+          test -s ocr/tesseract.min.js
+          test -s ocr/worker.min.js
+          test -s ocr/lang/jpn.traineddata.gz
+          test -s ocr/lang/eng.traineddata.gz
+      - name: Commit local OCR assets
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ocr
+          if ! git diff --cached --quiet; then
+            git commit -m 'Add self-hosted OCR engine and Japanese-English models'
+            git push
+          fi
