@@ -1,0 +1,1 @@
+{"name":"名刺ポケット — オフライン名刺帳","short_name":"名刺ポケット","description":"名刺情報と名刺写真をiPhone内に保存","start_url":"./","scope":"./","display":"standalone","background_color":"#f4f7fb","theme_color":"#12233c","icons":[{"src":"./icon.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},{"src":"./icon.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}
